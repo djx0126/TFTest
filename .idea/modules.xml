@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" filepath="$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" />
       <module fileurl="file://$PROJECT_DIR$/TFTest.iml" filepath="$PROJECT_DIR$/TFTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cnn-text-classification-tf/cnn-text-classification-tf.iml" filepath="$PROJECT_DIR$/cnn-text-classification-tf/cnn-text-classification-tf.iml" />
     </modules>
   </component>
 </project>
