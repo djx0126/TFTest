@@ -20,7 +20,7 @@ def add_layer(inputs, in_size, out_size, activation_function=None):
 x_data = np.linspace(-1,1,300)[:, np.newaxis]
 noise = np.random.normal(0, 0.05, x_data.shape)
 #y_data = np.square(x_data) - 0.5 + noise
-y_data = np.square(x_data) + x_data * 2 + 3.0
+y_data = np.square(x_data) + x_data * 2 + 3.0 + noise
 
 
 # 2.定义节点准备接收数据
@@ -30,7 +30,9 @@ ys = tf.placeholder(tf.float32, [None, 1])
 
 # 3.定义神经层：隐藏层和预测层
 # add hidden layer 输入值是 xs，在隐藏层有 10 个神经元
-l1 = add_layer(xs, 1, 10, activation_function=tf.nn.relu)
+# l1 = add_layer(xs, 1, 10, activation_function=tf.nn.relu)
+l1 = add_layer(xs, 1, 10, activation_function=tf.nn.sigmoid)
+
 # add output layer 输入值是隐藏层 l1，在预测层输出 1 个结果
 prediction = add_layer(l1, 10, 1, activation_function=None)
 
@@ -60,7 +62,7 @@ for i in range(1000):
         print(i, sess.run(loss, feed_dict={xs: x_data, ys: y_data}))
 
 
-x_test_data = np.linspace(-1,1,5)[:, np.newaxis]
+x_test_data = np.linspace(-1.001,1.001,5)[:, np.newaxis]
 y_test_data = np.square(x_test_data) + x_test_data * 2 + 3.0
 print(y_test_data)
 print(sess.run(prediction, feed_dict={xs: x_test_data}))
