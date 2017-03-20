@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" filepath="$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MixDataTest/MixDataTest.iml" filepath="$PROJECT_DIR$/MixDataTest/MixDataTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/TFTest.iml" filepath="$PROJECT_DIR$/TFTest.iml" />
     </modules>
   </component>
