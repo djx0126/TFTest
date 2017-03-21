@@ -14,8 +14,22 @@ matrix_data_width = 5
 matrix_data_height = 30
 flat_data_length = 10
 
-train_data = InputData(model_fields=model_fields, file_path='train_data_min.txt')
-test_data = InputData(model_fields=model_fields, file_path='test_data_min.txt')
+
+min = True
+target = 3
+
+batch_size = 100
+num_epochs = 100000
+
+suffix = '.txt'
+if (min):
+    suffix = '_min.txt'
+train_path = 'train_data' + suffix
+test_path = 'test_data' + suffix
+
+
+train_data = InputData(model_fields=model_fields, file_path=train_path)
+test_data = InputData(model_fields=model_fields, file_path=test_path)
 
 
 
@@ -41,77 +55,69 @@ def max_pool_2x2(x):
 
 x_image = tf.reshape(x, [-1,matrix_data_height,matrix_data_width,1]) # M * 30 * 5
 
-# filter_sizes = [3,5]
-# pooled_outputs = []
-# for i,filer_size in enumerate(filter_sizes):
-#     n_filters = 32
-#     filter1_height = filer_size
-#     W_conv1 = weight_variable([5, matrix_data_width, 1, n_filters])
-#     b_conv1 = bias_variable([n_filters])
-#     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)   # M * 26 * 1 * 32
-#     convd_height = matrix_data_height - filter1_height + 1
-#     h_pool1 = max_pool_2x2(h_conv1)  # M * 13 * 1 * 32
-#     pooled_height = int(convd_height/2)
-#     h1_flat = tf.reshape(h_pool1, [-1, pooled_height*n_filters])
-#     pooled_outputs.append(h1_flat)
-#
-# pooled_outputs.append(x_f)
-# h_flat = tf.concat(pooled_outputs, 1)
+filter_sizes = [3,5,7,11]
+flat_size = 0
+pooled_outputs = []
+for i,filter1_height in enumerate(filter_sizes):
+    n_filters1 = 128
+    W_conv1 = weight_variable([filter1_height, matrix_data_width, 1, n_filters1])
+    b_conv1 = bias_variable([n_filters1])
+    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)   # M * 26 * 1 * 32
+    conv1_height = matrix_data_height - filter1_height + 1
+    h_pool1 = max_pool_2x2(h_conv1)  # M * 13 * 1 * 32
+    pooled_height = int(conv1_height / 2)
 
-n_filters = 64
+    # n_filters2 = 64
+    # W_conv2 = weight_variable([filter1_height, 1, n_filters1, n_filters2])
+    # b_conv2 = bias_variable([n_filters2])
+    # h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)   # M * 9 * 1 * 64
+    # conv2_height = pooled_height - filter1_height + 1
+    # h_pool2 = max_pool_2x2(h_conv2)  # M * 4 * 1 * 64
+    # pooled_height2 = int(conv2_height / 2)
 
-filter1_height = 5
-W_conv1 = weight_variable([5, matrix_data_width, 1, n_filters])
-b_conv1 = bias_variable([n_filters])
-h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)   # M * 26 * 1 * 32
-convd_height = matrix_data_height - filter1_height + 1
-h_pool1 = max_pool_2x2(h_conv1)  # M * 13 * 1 * 32
-pooled_height = convd_height/2
-h1_flat = tf.reshape(h_pool1, [-1, 13*n_filters])
 
-W_conv2 = weight_variable([3, matrix_data_width, 1, n_filters])
-b_conv2 = bias_variable([n_filters])
-h_conv2 = tf.nn.relu(conv2d(x_image, W_conv2) + b_conv2) # M * 28 * 1 * 32
-h_pool2 = max_pool_2x2(h_conv2)  # M * 14 * 1 * 32
-h2_flat = tf.reshape(h_pool2, [-1, 14*n_filters])
+    partial_flat_size = pooled_height*1 * n_filters1
+    h1_flat = tf.reshape(h_pool1, [-1, partial_flat_size])
 
-h_flat = tf.concat([h1_flat,h2_flat, x_f], 1)
+    flat_size += partial_flat_size
+    pooled_outputs.append(h1_flat)
 
-W_fc1 = weight_variable([13*n_filters+14*n_filters+10, 512])
-b_fc1 = bias_variable([512])
+pooled_outputs.append(x_f)
+h_flat = tf.concat(pooled_outputs, 1)
+flat_size += flat_data_length
 
+nc_1_size = 256
+W_fc1 = weight_variable([flat_size, nc_1_size])
+b_fc1 = bias_variable([nc_1_size])
 h_fc1 = tf.nn.relu(tf.matmul(h_flat, W_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-W_fc2 = weight_variable([512, 1])
+W_fc2 = weight_variable([nc_1_size, 1])
 b_fc2 = bias_variable([1])
-
 y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
 loss = tf.reduce_mean(tf.pow(y_conv-y_, 2))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 
-target = 3
 correct_prediction = tf.equal(y_conv > target, y_ > target)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 sess.run(tf.global_variables_initializer())
 
-for i in range(20000):
-    batch = train_data.next(100)
+for i in range(num_epochs):
+    batch = train_data.next(batch_size)
 
     if i%100 == 0:
-        # train_y_output = y_conv.eval(feed_dict={input: batch, keep_prob: 1.0})
-        # print(train_y_output.shape)
-        # train_y_target = y_.eval(feed_dict={input: batch, keep_prob: 1.0})
-        # print(train_y_target.shape)
-
         train_accuracy = accuracy.eval(feed_dict={input: batch, keep_prob: 1.0})
         train_loss = loss.eval(feed_dict={input: batch, keep_prob: 1.0})
         print("step %d, training accuracy %g, current cost: %g"%(i, train_accuracy, train_loss))
 
-    train_step.run(feed_dict={input: batch, keep_prob: 0.5})
+    if i%1000 == 0:
+        test_accuracy = accuracy.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
+        print("test accuracy %g"%(test_accuracy))
+
+    train_step.run(feed_dict={input: batch, keep_prob: 1.0})
 
 test_accuracy = accuracy.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
 print("test accuracy %g"%(test_accuracy))
