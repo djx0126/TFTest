@@ -51,6 +51,10 @@ class InputData(object):
         np.random.shuffle(self.__seq)
         self.__next_batch_index = 0
 
+    def data(self):
+        seq = self.__seq
+        return self.__raw_data[seq,:]
+
     def next(self, batch_size):
         batch_start = self.__next_batch_index
         batch_end = batch_start + batch_size
@@ -86,13 +90,22 @@ class InputData(object):
         cols = self.model_fields.get_over_all_ma_field_columns()
         return self.__raw_data[self.__seq, cols]
 
+    def get_matrix_part_data(self):
+        return self.get_day_field_cols()
+
+    def get_flat_part_data(self):
+        cols = np.hstack((self.model_fields.get_ma_field_columns(), self.model_fields.get_over_all_ma_field_columns()))
+        return self.__raw_data[self.__seq][:, cols]
+
     def get_label_cols(self):
         cols = self.model_fields.get_label_columns()
         return self.__raw_data[self.__seq, cols]
 
 
 if __name__ == '__main__':
-    model_fields = ModelFields(day_fields=[30,30,30,30,30], ma_fields=[5, 10, 20, 30, 60], over_all_ma_fields=[5, 10, 20, 30, 60])
+    model_fields = ModelFields(day_fields=[30,30,30,30,30],
+                               ma_fields=[5, 10, 20, 30, 60],
+                               over_all_ma_fields=[5, 10, 20, 30, 60])
     input_data = InputData(model_fields=model_fields, file_path='test_data_min.txt')
     print(input_data.size())
     batch_data = input_data.next(3)
@@ -105,4 +118,10 @@ if __name__ == '__main__':
     train, test = input_data.random_pick(0.7)
     print('train size: ' + str(train.size()))
     print('test size: ' + str(test.size()))
+
+    flat_cols = input_data.get_flat_part_data()
+    print('flat cols: ' + str(flat_cols.shape))
+
+    data = input_data.data()
+    print('data: ' + str(data.shape))
 
