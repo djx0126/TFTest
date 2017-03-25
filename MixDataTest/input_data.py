@@ -19,7 +19,7 @@ class InputData(object):
             self.__raw_data = src_data
             self.M = len(src_data)
             self.__seq = np.arange(self.M)
-            self.suffle()
+            self.shuffle()
         else:
             self.read_data()
 
@@ -45,9 +45,9 @@ class InputData(object):
             self.__raw_data = return_mat
             self.M = m
             self.__seq = np.arange(self.M)
-            self.suffle()
+            self.shuffle()
 
-    def suffle(self):
+    def shuffle(self):
         np.random.shuffle(self.__seq)
         self.__next_batch_index = 0
 
@@ -59,7 +59,7 @@ class InputData(object):
         batch_start = self.__next_batch_index
         batch_end = batch_start + batch_size
         if (batch_end > self.M):
-            self.suffle()
+            self.shuffle()
             return self.next(batch_size)
         seq = self.__seq[batch_start:batch_end]
         batch = self.__raw_data[seq,:]
