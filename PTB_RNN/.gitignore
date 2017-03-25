@@ -13,4 +13,5 @@ train_data.txt
 train_data_min.txt
 train*.txt
 test*.txt
+ptb.*.txt
 
