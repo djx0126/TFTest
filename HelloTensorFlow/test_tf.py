@@ -15,7 +15,7 @@ input = tf.Variable([ [1,2,3],  [4,5,6] ])
 i1 = tf.slice(input, [0,0], [-1,2])
 i2 = tf.slice(input, [0,2], [-1,1])
 
-input_b = input > 3
+input_b = (input <5) &( input >3)
 
 b = tf.cast(input_b, tf.float32)
 
@@ -36,6 +36,9 @@ with tf.Session() as sess:
     print(i1.eval())
     print(i2.eval())
 
+
+i = tf.train.range_input_producer(10, shuffle=False).dequeue()
+print(i)
 
 
 

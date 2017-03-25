@@ -19,7 +19,7 @@ min = True
 target = 3
 
 batch_size = 100
-num_epochs = 100000
+num_epochs = 1000
 
 suffix = '.txt'
 if (min):
@@ -103,6 +103,11 @@ train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 
 correct_prediction = tf.equal(y_conv > target, y_ > target)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+target_buy = tf.reduce_sum(tf.cast(y_conv > target, tf.float32))
+target_buy_correct = tf.reduce_sum(tf.cast((y_conv > target) & (y_ > target), tf.float32))
+buy_success = target_buy_correct/target_buy
+
 sess.run(tf.global_variables_initializer())
 
 for i in range(num_epochs):
@@ -111,15 +116,18 @@ for i in range(num_epochs):
     if i%100 == 0:
         train_accuracy = accuracy.eval(feed_dict={input: batch, keep_prob: 1.0})
         train_loss = loss.eval(feed_dict={input: batch, keep_prob: 1.0})
-        print("step %d, training accuracy %g, current cost: %g"%(i, train_accuracy, train_loss))
+        train_buy_success = buy_success.eval(feed_dict={input: batch, keep_prob: 1.0})
+        print("step %d, training accuracy %g, current cost: %g, train_buy_success: %g"%(i, train_accuracy, train_loss, train_buy_success))
 
     if i%1000 == 0:
         test_accuracy = accuracy.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
-        print("test accuracy %g"%(test_accuracy))
+        test_buy_success = buy_success.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
+        print("test accuracy %g, test_buy_success: %g"%(test_accuracy, test_buy_success))
 
     train_step.run(feed_dict={input: batch, keep_prob: 1.0})
 
 test_accuracy = accuracy.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
-print("test accuracy %g"%(test_accuracy))
+test_buy_success = buy_success.eval(feed_dict={input: test_data.data(), keep_prob: 1.0})
+print("test accuracy %g, test_buy_success: %g"%(test_accuracy, test_buy_success))
 
 

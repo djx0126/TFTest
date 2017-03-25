@@ -3,4 +3,7 @@
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_3" default="false" project-jdk-name="Python 3.5.2 (C:\Program Files\Python35\python.exe)" project-jdk-type="Python SDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
+  <component name="PythonCompatibilityInspectionAdvertiser">
+    <option name="version" value="1" />
+  </component>
 </project>

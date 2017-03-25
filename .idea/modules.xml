@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" filepath="$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" />
       <module fileurl="file://$PROJECT_DIR$/MixDataTest/MixDataTest.iml" filepath="$PROJECT_DIR$/MixDataTest/MixDataTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PTB_RNN/PTB_RNN.iml" filepath="$PROJECT_DIR$/PTB_RNN/PTB_RNN.iml" />
       <module fileurl="file://$PROJECT_DIR$/TFTest.iml" filepath="$PROJECT_DIR$/TFTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/cnn-text-classification-tf/cnn-text-classification-tf.iml" filepath="$PROJECT_DIR$/cnn-text-classification-tf/cnn-text-classification-tf.iml" />
     </modules>
