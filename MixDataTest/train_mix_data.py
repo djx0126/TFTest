@@ -39,6 +39,7 @@ def get_config():
     else:
         raise ValueError("Invalid model: %s", FLAGS.model)
 
+
 def run_epoch(session, model, eval_op=None, iter=0, verbose=False):
     fetches = {
         "accuracy": model.accuracy,
@@ -95,7 +96,6 @@ else:
 
 print("valid data count:" + str(len(valid_data.data())))
 
-
 with tf.Graph().as_default():
     initializer = tf.random_uniform_initializer(-config.init_scale, config.init_scale)
 
@@ -130,7 +130,7 @@ with tf.Graph().as_default():
             if i % 1000 == 0:
                 vals = run_epoch(session, mvalid)
                 print("Epoch: %d Valid accuracy: %f, cost:%.3f, idea_target_buy:%.1f" % (
-                i, vals["accuracy"], vals["cost"], vals["b"]))
+                    i, vals["accuracy"], vals["cost"], vals["b"]))
 
             if i % 10000 == 0:
                 vals = run_epoch(session, mtest)

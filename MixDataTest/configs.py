@@ -10,17 +10,19 @@ class SmallConfig(object):
     padding_valid = True
     valid_on_test_data = False
 
+
 class MidConfig(object):
     """Medium config."""
     init_scale = 0.05
     keep_prob = 1.0
     batch_size = 100
     num_epochs = 50000
-    n_filters = [256,256]
+    n_filters = [256, 256]
     filter_sizes = [3, 5, 11]
     fc_size = 256
     padding_valid = True
     valid_on_test_data = False
+
 
 class LargeConfig(object):
     """Large config."""
@@ -28,9 +30,8 @@ class LargeConfig(object):
     keep_prob = 1.0
     batch_size = 100
     num_epochs = 200000
-    n_filters = [256,256] # num_filters for each size of filter, each item will be one conv layer
+    n_filters = [256, 256]  # num_filters for each size of filter, each item will be one conv layer
     filter_sizes = [3, 5, 11, 19, 31]
     fc_size = 1024
     padding_valid = True
     valid_on_test_data = True
-

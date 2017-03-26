@@ -5,6 +5,7 @@ import numpy as np
 import re
 from model_fields import ModelFields
 
+
 class InputData(object):
     def __init__(self, model_fields, file_path=None, src_data=None):
         self.model_fields = model_fields
@@ -22,7 +23,6 @@ class InputData(object):
             self.shuffle()
         else:
             self.read_data()
-
 
     def size(self):
         return self.M
@@ -53,7 +53,7 @@ class InputData(object):
 
     def data(self):
         seq = self.__seq
-        return self.__raw_data[seq,:]
+        return self.__raw_data[seq, :]
 
     def next(self, batch_size):
         batch_start = self.__next_batch_index
@@ -62,7 +62,7 @@ class InputData(object):
             self.shuffle()
             return self.next(batch_size)
         seq = self.__seq[batch_start:batch_end]
-        batch = self.__raw_data[seq,:]
+        batch = self.__raw_data[seq, :]
         self.__next_batch_index += batch_size
         return batch
 
@@ -106,7 +106,7 @@ class InputData(object):
 
 
 if __name__ == '__main__':
-    model_fields = ModelFields(day_fields=[30,30,30,30,30],
+    model_fields = ModelFields(day_fields=[30, 30, 30, 30, 30],
                                ma_fields=[5, 10, 20, 30, 60],
                                over_all_ma_fields=[5, 10, 20, 30, 60])
     input_data = InputData(model_fields=model_fields, file_path='test_data_min.txt')
@@ -127,4 +127,3 @@ if __name__ == '__main__':
 
     data = input_data.data()
     print('data: ' + str(data.shape))
-

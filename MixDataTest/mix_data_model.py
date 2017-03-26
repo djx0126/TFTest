@@ -2,6 +2,7 @@ import tensorflow as tf
 
 target = 5
 
+
 class MixDataInput(object):
     def __init__(self, data, batch_size=1, name=None):
         self.name = name
