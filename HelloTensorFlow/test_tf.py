@@ -11,34 +11,35 @@ input_data = tf.random_normal([1,5,5,1])
 
 
 
-input = tf.Variable([ [1,2,3],  [4,5,6] ])
-i1 = tf.slice(input, [0,0], [-1,2])
-i2 = tf.slice(input, [0,2], [-1,1])
+input = tf.Variable( [4,2,3, 1,5,6] )
+y = tf.Variable( [2,2,3, 1,5,6] )
 
-input_b = (input <5) &( input >3)
+input_a = ( input >3)
+input_b = ( y >3)
 
+a = tf.cast(input_a, tf.float32)
 b = tf.cast(input_b, tf.float32)
+c = tf.cast(tf.equal(input_a, input_b), tf.float32)
+c_avg = tf.reduce_mean(tf.cast(tf.equal(input_a, input_b), tf.float32))
 
-matrix_data_height = 30
-filter_sizes = [3,5]
-for i,filer_size in enumerate(filter_sizes):
-    filer1_height = filer_size
-    convd_height = matrix_data_height - filer1_height + 1
-    convd_height = int(convd_height/2)
-    print(convd_height)
+v = []
+v1 = tf.Variable( [ [1,2],[2,2], [3,2]         ])
+v2 = tf.Variable( [ [4,3],[5,3], [6,3]         ])
+v.append(v1)
+v.append(v2)
+v_f = tf.concat(v, 1)
 
 init = tf.global_variables_initializer()
 with tf.Session() as sess:
     sess.run(init)
-
-    print(input.eval())
-    print(b.eval())
-    print(i1.eval())
-    print(i2.eval())
+    print(v1.eval())
+    print(v2.eval())
+    print(v_f.eval())
 
 
-i = tf.train.range_input_producer(10, shuffle=False).dequeue()
-print(i)
+
+# i = tf.train.range_input_producer(10, shuffle=False).dequeue()
+# print(i)
 
 
 
