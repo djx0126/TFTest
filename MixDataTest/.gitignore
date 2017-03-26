@@ -15,4 +15,5 @@ train*.txt
 test*.txt
 raw_data*.txt
 logs
+logs_large
 
