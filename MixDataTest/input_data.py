@@ -78,6 +78,9 @@ class InputData(object):
             return (part1, part2)
         return self
 
+    def get_fields(self):
+        return self.model_fields
+
     def get_day_field_cols(self):
         cols = self.model_fields.get_day_fields_by_day()
         return self.__raw_data[self.__seq, cols]

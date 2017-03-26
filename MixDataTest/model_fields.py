@@ -49,9 +49,25 @@ class ModelFields:
         seq_end = self.size_of_one_data
         return seq[seq_start: seq_end]
 
+    @property
+    def matrix_data_width(self):
+        return np.count_nonzero(self.day_fields)
+
+
+    @property
+    def matrix_data_height(self):
+        return np.max(self.day_fields)
+
+    @property
+    def flat_data_length(self):
+        return self.ma_size + self.over_all_ma_size
+
 if __name__ == '__main__':
-    model_fields = ModelFields(day_fields=[3,0,3,4,1], ma_fields=[5, 10, 20, 30, 60], over_all_ma_fields=[5, 10, 20, 30, 60])
+    model_fields = ModelFields(day_fields=[3,0,3,15,1], ma_fields=[5, 10, 20, 30, 60], over_all_ma_fields=[5, 10, 20, 30, 60])
     print(model_fields.one_data_size())
     print('day_field_cols: ' + str(model_fields.get_day_fields_by_day()))
     print('ma_field_cols: ' + str(model_fields.get_ma_field_columns()))
     print('over_all_ma_field_cols: ' + str(model_fields.get_over_all_ma_field_columns()))
+    print('matrix_data_width: ' + str(model_fields.matrix_data_width))
+    print('matrix_data_height: ' + str(model_fields.matrix_data_height))
+    print('flat_data_length: ' + str(model_fields.flat_data_length))
