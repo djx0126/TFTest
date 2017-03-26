@@ -45,6 +45,7 @@ class MixDataModel(object):
                 n_filters1 = 128
 
                 W_conv1 = self.weight_variable([filter1_height, matrix_data_width, 1, n_filters1], "conv" + str(i))
+                tf.add_to_collection('losses', tf.nn.l2_loss(W_conv1))
                 b_conv1 = self.bias_variable([n_filters1], "conv" + str(i))
                 h_conv1 = tf.nn.relu(self.conv2d(x_image, W_conv1) + b_conv1)  # M * 26 * 1 * 32
                 conv1_height = matrix_data_height
@@ -68,6 +69,7 @@ class MixDataModel(object):
         nc_1_size = self._config.fc_size
         with tf.name_scope("fc1"):
             W_fc1 = self.weight_variable([flat_size, nc_1_size], "fc1")
+            tf.add_to_collection('losses', tf.nn.l2_loss(W_fc1))
             b_fc1 = self.bias_variable([nc_1_size], "fc1")
             h_fc1 = tf.nn.relu(tf.matmul(h_flat, W_fc1) + b_fc1)
 
@@ -76,10 +78,12 @@ class MixDataModel(object):
 
         with tf.name_scope("fc2"):
             W_fc2 = self.weight_variable([nc_1_size, 1], "fc2")
+            tf.add_to_collection('losses',  tf.nn.l2_loss(W_fc2))
             b_fc2 = self.bias_variable([1], "fc2")
             y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
-        self._cost = tf.reduce_mean(tf.pow(y_conv - y_, 2))
+        total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+        self._cost = tf.reduce_mean(tf.pow(y_conv - y_, 2) + config.beta * total_loss)
         self._train_op = tf.train.AdamOptimizer(1e-4).minimize(self._cost)
 
         correct_prediction = tf.equal(y_conv > target, y_ > target)
@@ -100,8 +104,6 @@ class MixDataModel(object):
 
     def bias_variable(self, shape, scope_name):
         with tf.variable_scope(scope_name):
-            if not self.is_training:
-                tf.get_variable_scope().reuse_variables()
             return tf.get_variable("b", shape, dtype=tf.float32)
 
     def conv2d(self, x, W):
