@@ -37,29 +37,47 @@ class MixDataModel(object):
 
         x_image = tf.reshape(x, [-1, matrix_data_height, matrix_data_width, 1])  # M * 30 * 5 * 1
 
-        filter_sizes = self._config.filter_sizes
         flat_size = 0
         pooled_outputs = []
-        for i, filter1_height in enumerate(filter_sizes):
-            with tf.name_scope("conv" + str(i)):
-                n_filters1 = 128
 
-                W_conv1 = self.weight_variable([filter1_height, matrix_data_width, 1, n_filters1], "conv" + str(i))
-                tf.add_to_collection('losses', tf.nn.l2_loss(W_conv1))
-                b_conv1 = self.bias_variable([n_filters1], "conv" + str(i))
-                h_conv1 = tf.nn.relu(self.conv2d(x_image, W_conv1) + b_conv1)  # M * 26 * 1 * 32
-                conv1_height = matrix_data_height
-                if self._config.padding_valid:
-                    conv1_height = matrix_data_height - filter1_height + 1  # padding=VALID
-                h_pool1 = self.max_pool_2x2(h_conv1)  # M * 13 * 1 * 32
-                pooled_height = conv1_height // 2
+        conv_input_width = matrix_data_width
+        conv_input_height = matrix_data_height
+        conv_input_filters = 1
+        cnn_x = x_image
+        for i, cnn_layer_filters in enumerate(self._config.cnn_filters):
+            with tf.name_scope("conv_layer" + str(i)):
+                num_layer_filters = cnn_layer_filters[0]
+                conv_size = cnn_layer_filters[1]
+                num_filters = cnn_layer_filters[2]
 
-                partial_flat_size = pooled_height * 1 * n_filters1
-                h1_flat = tf.reshape(h_pool1, [-1, partial_flat_size])
+                for j in range(num_layer_filters):
+                    scope_name = "conv_layer" + str(i) + "_conv_" + str(j)
+                    with tf.name_scope(scope_name):
+                        W_conv1 = self.weight_variable([conv_size, conv_input_width, conv_input_filters, num_filters],
+                                                       scope_name)
+                        tf.add_to_collection('losses', tf.nn.l2_loss(W_conv1))
+                        b_conv1 = self.bias_variable([num_filters], scope_name)
+                        h_conv1 = tf.nn.relu(self.conv2d(cnn_x, W_conv1) + b_conv1)  # M * 26 * 1 * 32
+                        conv1_height = conv_input_height
+                        if self._config.padding_valid:
+                            conv1_height = conv_input_height - conv_size + 1  # padding=VALID
 
-                flat_size += partial_flat_size
-                pooled_outputs.append(h1_flat)
-        # end for
+                        cnn_x = h_conv1
+                        conv_input_height = conv1_height
+                        conv_input_width = 1
+                        conv_input_filters = num_filters
+
+                pool_output = self.max_pool_2x2(cnn_x)  # M * 13 * 1 * 32
+                pooled_output_height = conv_input_height // 2
+                cnn_x = pool_output
+                conv_input_height = pooled_output_height
+
+        partial_flat_size = conv_input_height * conv_input_filters
+        flat_size += partial_flat_size
+        h1_flat = tf.reshape(cnn_x, [-1, partial_flat_size])
+        self._keep_prob = tf.placeholder(tf.float32)
+        h1_flat_drop = tf.nn.dropout(h1_flat, self._keep_prob)
+        pooled_outputs.append(h1_flat_drop)
 
         if flat_data_length > 0:
             pooled_outputs.append(x_f)
@@ -73,12 +91,11 @@ class MixDataModel(object):
             b_fc1 = self.bias_variable([nc_1_size], "fc1")
             h_fc1 = tf.nn.relu(tf.matmul(h_flat, W_fc1) + b_fc1)
 
-        self._keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, self._keep_prob)
 
         with tf.name_scope("fc2"):
             W_fc2 = self.weight_variable([nc_1_size, 1], "fc2")
-            tf.add_to_collection('losses',  tf.nn.l2_loss(W_fc2))
+            tf.add_to_collection('losses', tf.nn.l2_loss(W_fc2))
             b_fc2 = self.bias_variable([1], "fc2")
             y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
@@ -107,11 +124,11 @@ class MixDataModel(object):
             return tf.get_variable("b", shape, dtype=tf.float32)
 
     def conv2d(self, x, W):
-        padding = 'VALID' if self._config.padding_valid == True else 'SAME'
+        padding = 'VALID'
         return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding=padding)
 
     def max_pool_2x2(self, x):
-        padding = 'VALID' if self._config.padding_valid == True else 'SAME'
+        padding = 'VALID'
         return tf.nn.max_pool(x, ksize=[1, 2, 1, 1],
                               strides=[1, 2, 1, 1], padding=padding)
 
