@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" filepath="$PROJECT_DIR$/HelloTensorFlow/HelloTensorFlow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Keras/Keras.iml" filepath="$PROJECT_DIR$/Keras/Keras.iml" />
+      <module fileurl="file://$PROJECT_DIR$/LSTM/LSTM.iml" filepath="$PROJECT_DIR$/LSTM/LSTM.iml" />
       <module fileurl="file://$PROJECT_DIR$/MixDataTest/MixDataTest.iml" filepath="$PROJECT_DIR$/MixDataTest/MixDataTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/PTB_RNN/PTB_RNN.iml" filepath="$PROJECT_DIR$/PTB_RNN/PTB_RNN.iml" />
       <module fileurl="file://$PROJECT_DIR$/TFTest.iml" filepath="$PROJECT_DIR$/TFTest.iml" />
