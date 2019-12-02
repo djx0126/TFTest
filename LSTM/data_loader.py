@@ -85,17 +85,18 @@ def prepare_data_frame(file_path):
     df['gain_coded'] = pd.Categorical(df['gain_coded'])
     df['gain_coded'] = df.gain_coded.cat.codes
 
-    df.drop(['date'], axis=1, inplace=True)
-    df.drop(['code'], axis=1, inplace=True)
-    df.drop(['gain'], axis=1, inplace=True)
-
-    print(df.head(5))
-
-    df = df.sample(frac=1)
-    print(df.head(5))
-
-    gain_coded = df.pop('gain_coded')
-    return df, gain_coded
+    # df.drop(['date'], axis=1, inplace=True)
+    # df.drop(['code'], axis=1, inplace=True)
+    # df.drop(['gain'], axis=1, inplace=True)
+    #
+    # print(df.head(5))
+    #
+    # df = df.sample(frac=1)
+    # print(df.head(5))
+    #
+    # gain_coded = df.pop('gain_coded')
+    # return df, gain_coded
+    return df
 
 
 

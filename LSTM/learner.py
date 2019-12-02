@@ -20,8 +20,7 @@ if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 
-
-save_format="hdf5" #或saved_model
+save_format="hdf5"  # 或saved_model
 if save_format=="hdf5":
     save_path_models=os.path.join(output_folder,"hdf5_models")
     if not os.path.exists(save_path_models):
@@ -51,22 +50,34 @@ if not os.path.exists(profile_log_dir):
 file_path = "./data/raw_data_pre64_gain5_20130415_20191025_small.txt"
 meta_file_path = "./data/raw_data_pre64_gain5_20130415_20191025_meta.txt"
 
-df, gain_coded = loader.prepare_data_frame(file_path)
-M = len(df)
+df = loader.prepare_data_frame(file_path)
 
-values = tf.reshape(df.values, [-1, 5, 64])
+print(df.head(5))
+
+df = df.sample(frac=1)
+dft = df.drop(['date'], axis=1, inplace=False)
+dft = dft.drop(['code'], axis=1, inplace=False)
+dft = dft.drop(['gain'], axis=1, inplace=False)
+print(dft.head(5))
+
+gain_coded = dft.pop('gain_coded')
+
+
+M = len(dft)
+
+values = tf.reshape(dft.values, [-1, 5, 64])
 gain = keras.utils.to_categorical(gain_coded.values,num_classes=3)
 
 splitpoint = int(round(M * 0.8))
 splitpoint = int(np.floor(splitpoint/batch_size) * batch_size)
-(X_train, X_val) = (df.values[0:splitpoint], df.values[splitpoint:])
+(X_train, X_val) = (dft.values[0:splitpoint], dft.values[splitpoint:])
 (Y_train, Y_val) = (gain[0:splitpoint], gain[splitpoint:])
 
 train = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
 train_dataset = train.shuffle(Y_train.shape[0]).batch(batch_size)
 
 val = tf.data.Dataset.from_tensor_slices((X_val, Y_val))
-val_dataset = val.shuffle(Y_val.shape[0]).batch(2)
+val_dataset = val.shuffle(Y_val.shape[0]).batch(batch_size)
 
 train_ds=train_dataset.shuffle(buffer_size=batch_size*10).batch(batch_size).prefetch(buffer_size = tf.data.experimental.AUTOTUNE).repeat()
 train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
@@ -100,7 +111,7 @@ tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
 callbacks = [tensorboard]
 
 H = model.fit(train_ds, epochs=20, verbose=2, callbacks=callbacks, validation_data=val_dataset,
-              steps_per_epoch=train_steps_per_epoch, validation_steps=np.floor(train_steps_per_epoch/10))
+              steps_per_epoch=train_steps_per_epoch, validation_steps=int(np.floor(train_steps_per_epoch/5)))
 print(H.history['accuracy'])
 print(H.history['loss'])
 print(H.history)
@@ -109,5 +120,23 @@ print("The model architure:\n")
 print(model.summary())
 
 ploter.plot_save(H, os.path.join(log_dir, profile_dir_name))
+
+ypref_val = model.predict(x=X_val, workers=1)
+print(ypref_val)
+ypre_val = np.argmax(ypref_val, axis=1)
+sum_pre2 = np.sum(ypre_val == 2)
+sum_Y_2 = np.sum(np.argmax(Y_val[ypre_val == 2], axis=1) == 2)
+
+df_val = df.values[splitpoint:]
+to_buy = df[splitpoint:][ypre_val == 2]
+print(df[splitpoint:][ypre_val == 2])
+print('gain=', np.sum(to_buy['gain']))
+print('count=', sum_pre2, sum_Y_2, ' acc=', sum_Y_2/sum_pre2)
+threshold = 0.75
+count_thre = np.sum(ypref_val[:, 2] > threshold)
+acc_thre = np.sum(np.argmax(Y_val[ypref_val[:, 2] > threshold], axis=1) == 2) / np.sum(ypref_val[:, 2] > threshold)
+to_buy_thre = df[splitpoint:][ypref_val[:, 2] > threshold]
+print('buy with threshold ', threshold, ' count=', count_thre, ' acc=', acc_thre, 'gain=', np.sum(to_buy_thre['gain']))
+
 
 
