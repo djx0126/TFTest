@@ -47,9 +47,9 @@ def build_column_label(meta):
     return columns
 
 
-meta = load_meta(meta_file_path)
-print(meta)
-column_label = build_column_label(meta)
+# meta = load_meta(meta_file_path)
+# print(meta)
+# column_label = build_column_label(meta)
 # print(column_label)
 
 def get_dataset(file_path):

@@ -52,11 +52,11 @@ def prepare_folders():
 
 log_dir, profile_dir_name = prepare_folders()
 
-file_path = "./data/raw_data_pre64_gain5_20130415_20191025_small.txt"
-meta_file_path = "./data/raw_data_pre64_gain5_20130415_20191025_meta.txt"
+file_path = "./data/raw_data_pre64_gain5_20130415_20191025_S.txt"
+meta_file_path = "./data/raw_data_pre64_gain5_20130415_20191025_S_meta.txt"
 
-# test_by_date=20190101
-test_by_date=0
+test_by_date=20190101
+# test_by_date=0
 
 df = loader.prepare_data_frame(file_path)
 print(df.head(5))
@@ -94,21 +94,33 @@ train_dataset = train.shuffle(Y_train.shape[0]).batch(batch_size)
 val = tf.data.Dataset.from_tensor_slices((X_val, Y_val))
 val_dataset = val.shuffle(Y_val.shape[0]).batch(batch_size)
 
-train_ds=train_dataset.shuffle(buffer_size=batch_size*10).batch(batch_size).prefetch(buffer_size = tf.data.experimental.AUTOTUNE).repeat()
+# train_ds=train_dataset.shuffle(buffer_size=batch_size*10).batch(batch_size).prefetch(buffer_size = tf.data.experimental.AUTOTUNE).repeat()
+train_ds=train_dataset.shuffle(buffer_size=batch_size*10)
+train_ds=train
 train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
 
 
 def get_compiled_model():
-    model = tf.keras.Sequential([
-        # tf.keras.layers.Dense(1024, activation='relu'),
-        # tf.keras.layers.Dense(1024, activation='relu'),
-        # tf.keras.layers.Conv1D(1, 1, strides=1, padding='valid', data_format='channels_first'),
-        tf.keras.layers.Dense(8, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(8, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(3, activation='softmax')
-    ])
+    inputs = keras.Input(shape=(320,))
+    x = keras.layers.Dense(8, activation='relu')(inputs)
+    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Dense(8, activation='relu')(x)
+    x = keras.layers.Dropout(0.2)(x)
+    outputs = keras.layers.Dense(3, activation='softmax')(x)
+    model = keras.Model(inputs=inputs, outputs=outputs, name='mnist_model')
+    model.summary()
+    # keras.utils.plot_model(model, 'my_first_model_with_shape_info.png', show_shapes=True)
+
+    # model = tf.keras.Sequential([
+    #     # tf.keras.layers.Dense(1024, activation='relu'),
+    #     # tf.keras.layers.Dense(1024, activation='relu'),
+    #     # tf.keras.layers.Conv1D(1, 1, strides=1, padding='valid', data_format='channels_first'),
+    #     tf.keras.layers.Dense(8, activation='relu'),
+    #     tf.keras.layers.Dropout(0.2),
+    #     tf.keras.layers.Dense(8, activation='relu'),
+    #     tf.keras.layers.Dropout(0.2),
+    #     tf.keras.layers.Dense(3, activation='softmax')
+    # ])
 
     model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
@@ -119,27 +131,28 @@ def get_compiled_model():
 
 model = get_compiled_model()
 
-tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 # csv_logger = tf.keras.callbacks.CSVLogger(os.path.join(log_dir,'logs.log'),separator=',')
 # keras.callbacks.ModelCheckpoint(output_model_file, save_best_only = True)
 # callbacks=[ckpt,earlystop,lr,tensorboard,terminate,reduce_lr,csv_logger]
-callbacks = [tensorboard]
+# callbacks = [tensorboard]
 
 with tf.device("/cpu:0"):
-    H = model.fit(train_ds, epochs=10, verbose=2, callbacks=callbacks, validation_data=val_dataset,
+    # H = model.fit(train_ds, epochs=20, verbose=2, callbacks=callbacks, validation_data=val_dataset,
+    H = model.fit(X_train, Y_train, epochs=10, verbose=2, validation_split=0.2, workers=12, #validation_data=val_dataset,
               steps_per_epoch=train_steps_per_epoch, validation_steps=int(np.floor(train_steps_per_epoch/5)))
     print(H.history['accuracy'])
     print(H.history['loss'])
     print(H.history)
 
-    print("The model architure:\n")
+    print("The model architecture:\n")
     print(model.summary())
 
     ploter.plot_save(H, os.path.join(log_dir, profile_dir_name))
 
 
 def evaluate(X, Y, model, data_frame):
-    ypref_val = model.predict(x=X, workers=1)
+    ypref_val = model.predict(x=X, workers=2)
     # print(ypref_val)
     ypre_val = np.argmax(ypref_val, axis=1)
     sum_pre2 = np.sum(ypre_val == 2)
