@@ -102,14 +102,27 @@ train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
 
 def get_compiled_model():
     inputs = keras.Input(shape=(320,))
-    x = keras.layers.Dense(8, activation='relu')(inputs)
-    x = keras.layers.Dropout(0.2)(x)
+    x=keras.layers.Reshape((64,5))(inputs)
+    print(x)
+
+    x = keras.layers.Conv1D(filters=6, kernel_size=3, padding='valid', data_format='channels_last')(x)
+    print(x)
+
+    x = keras.layers.MaxPooling1D(2)(x)
+    print(x)
+    x = keras.layers.LSTM(16, return_sequences = True)(x)
+    print(x)
+    x = keras.layers.LSTM(8)(x)
+    print(x)
+
+    # x = keras.layers.Dense(8, activation='relu')(inputs)
+    # x = keras.layers.Dropout(0.2)(x)
     x = keras.layers.Dense(8, activation='relu')(x)
     x = keras.layers.Dropout(0.2)(x)
     outputs = keras.layers.Dense(3, activation='softmax')(x)
     model = keras.Model(inputs=inputs, outputs=outputs, name='mnist_model')
     model.summary()
-    # keras.utils.plot_model(model, 'my_first_model_with_shape_info.png', show_shapes=True)
+    keras.utils.plot_model(model, os.path.join(log_dir, 'model_with_shape_info.png'), show_shapes=True)
 
     # model = tf.keras.Sequential([
     #     # tf.keras.layers.Dense(1024, activation='relu'),
