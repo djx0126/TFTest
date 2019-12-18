@@ -102,42 +102,18 @@ train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
 
 def get_compiled_model():
     inputs = keras.Input(shape=(320,))
-    x=keras.layers.Reshape((64,5))(inputs)
-    print(x)
+    x = inputs
 
-    x = keras.layers.Conv1D(filters=6, kernel_size=3, padding='valid', data_format='channels_last')(x)
-    print(x)
-
-    x = keras.layers.MaxPooling1D(2)(x)
-    print(x)
-    x = keras.layers.LSTM(16, return_sequences = True)(x)
-    print(x)
-    x = keras.layers.LSTM(8)(x)
-    print(x)
-
-    # x = keras.layers.Dense(8, activation='relu')(inputs)
-    # x = keras.layers.Dropout(0.2)(x)
     x = keras.layers.Dense(8, activation='relu')(x)
     x = keras.layers.Dropout(0.2)(x)
     outputs = keras.layers.Dense(3, activation='softmax')(x)
-    model = keras.Model(inputs=inputs, outputs=outputs, name='mnist_model')
+    model = keras.Model(inputs=inputs, outputs=outputs, name='baseline')
     model.summary()
     keras.utils.plot_model(model, os.path.join(log_dir, 'model_with_shape_info.png'), show_shapes=True)
 
-    # model = tf.keras.Sequential([
-    #     # tf.keras.layers.Dense(1024, activation='relu'),
-    #     # tf.keras.layers.Dense(1024, activation='relu'),
-    #     # tf.keras.layers.Conv1D(1, 1, strides=1, padding='valid', data_format='channels_first'),
-    #     tf.keras.layers.Dense(8, activation='relu'),
-    #     tf.keras.layers.Dropout(0.2),
-    #     tf.keras.layers.Dense(8, activation='relu'),
-    #     tf.keras.layers.Dropout(0.2),
-    #     tf.keras.layers.Dense(3, activation='softmax')
-    # ])
-
     model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
-                  metrics=['accuracy', 'categorical_accuracy'])
+                  metrics=['accuracy'])
 
     return model
 
@@ -152,20 +128,21 @@ tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 with tf.device("/cpu:0"):
     # H = model.fit(train_ds, epochs=20, verbose=2, callbacks=callbacks, validation_data=val_dataset,
-    H = model.fit(X_train, Y_train, epochs=10, verbose=2, validation_split=0.2, workers=12, #validation_data=val_dataset,
+    H = model.fit(X_train, Y_train, epochs=5, verbose=2, validation_split=0.2, workers=16, #validation_data=val_dataset,
               steps_per_epoch=train_steps_per_epoch, validation_steps=int(np.floor(train_steps_per_epoch/5)))
     print(H.history['accuracy'])
     print(H.history['loss'])
     print(H.history)
 
-    print("The model architecture:\n")
-    print(model.summary())
+    # print("The model architecture:\n")
+    # print(model.summary())
 
     ploter.plot_save(H, os.path.join(log_dir, profile_dir_name))
 
+model.save(os.path.join(log_dir, 'model'))
 
 def evaluate(X, Y, model, data_frame):
-    ypref_val = model.predict(x=X, workers=2)
+    ypref_val = model.predict(x=X, workers=16)
     # print(ypref_val)
     ypre_val = np.argmax(ypref_val, axis=1)
     sum_pre2 = np.sum(ypre_val == 2)
