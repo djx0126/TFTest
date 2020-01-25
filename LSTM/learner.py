@@ -52,8 +52,8 @@ def prepare_folders():
 
 log_dir, profile_dir_name = prepare_folders()
 
-file_path = "./data/raw_data_pre64_gain5_20130415_20191025_S.txt"
-meta_file_path = "./data/raw_data_pre64_gain5_20130415_20191025_S_meta.txt"
+file_path = "./data/raw_data_pre64_gain5_20130415_20191025_M.txt"
+meta_file_path = "./data/raw_data_pre64_gain5_20130415_20191025_M_meta.txSt"
 
 test_by_date=20190101
 # test_by_date=0
@@ -101,11 +101,44 @@ train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
 
 
 def get_compiled_model():
-    inputs = keras.Input(shape=(320,))
+    inputs = keras.Input(shape=(320,), batch_shape=(None, 320))
     x = inputs
+    # x = keras.layers.Reshape((64, 5))(x)
+    #
+    # x = keras.layers.Conv1D(filters=1, kernel_size=1, padding='valid', data_format='channels_last')(x)
+    # # x = keras.layers.LSTM(8, dropout=0.2)(x)
+    # # x = keras.layers.Flatten()(x)
+    #
+    # x1 = keras.layers.Conv1D(filters=8, kernel_size=5, padding='valid', data_format='channels_last')(x)
+    # x1 = keras.layers.LSTM(8, dropout=0.2)(x1)
+    # x1 = keras.layers.MaxPooling1D(2)(x1)
+    # x1 = keras.layers.Conv1D(filters=16, kernel_size=5, padding='valid', data_format='channels_last')(x1)
+    # x1 = keras.layers.MaxPooling1D(2)(x1)
+    # x1 = keras.layers.Flatten()(x1)
+
+    # x2 = keras.layers.Conv1D(filters=8, kernel_size=5, padding='valid', data_format='channels_last')(x)
+    # x2 = keras.layers.MaxPooling1D(2)(x2)
+    # x2 = keras.layers.Conv1D(filters=8, kernel_size=3, padding='valid', data_format='channels_last')(x2)
+    # x2 = keras.layers.MaxPooling1D(2)(x2)
+    # x2 = keras.layers.Flatten()(x2)
+    #
+    # x3 = keras.layers.Conv1D(filters=8, kernel_size=7, padding='valid', data_format='channels_last')(x)
+    # x3 = keras.layers.MaxPooling1D(2)(x3)
+    # x3 = keras.layers.Conv1D(filters=8, kernel_size=4, padding='valid', data_format='channels_last')(x3)
+    # x3 = keras.layers.MaxPooling1D(2)(x3)
+    # x3 = keras.layers.Flatten()(x3)
+
+    # x = keras.layers.concatenate([x1,x2])
+    # x = x1
+
+    # x = keras.layers.Dense(8, activation='relu')(x)
+    # x = keras.layers.Dropout(0.34)(x)
+    # x = keras.layers.Dense(16, activation='relu')(x)
+    # x = keras.layers.Dropout(0.34)(x)
 
     x = keras.layers.Dense(8, activation='relu')(x)
     x = keras.layers.Dropout(0.2)(x)
+
     outputs = keras.layers.Dense(3, activation='softmax')(x)
     model = keras.Model(inputs=inputs, outputs=outputs, name='baseline')
     model.summary()
@@ -134,12 +167,10 @@ with tf.device("/cpu:0"):
     print(H.history['loss'])
     print(H.history)
 
-    # print("The model architecture:\n")
-    # print(model.summary())
-
     ploter.plot_save(H, os.path.join(log_dir, profile_dir_name))
 
 model.save(os.path.join(log_dir, 'model'))
+
 
 def evaluate(X, Y, model, data_frame):
     ypref_val = model.predict(x=X, workers=16)
@@ -149,9 +180,10 @@ def evaluate(X, Y, model, data_frame):
     sum_Y_2 = np.sum(np.argmax(Y[ypre_val == 2], axis=1) == 2)
 
     to_buy = data_frame[ypre_val == 2]
-    # print(data_frame[ypre_val == 2])
-    print('gain=', np.sum(to_buy['gain']))
-    print('count=', sum_pre2, sum_Y_2, ' acc=', sum_Y_2/sum_pre2)
+    print('total=', len(Y), 'gain=', np.sum(to_buy['gain']), 'count=', sum_pre2, sum_Y_2, ' acc=', sum_Y_2/sum_pre2)
+    print(to_buy['gain'].describe())
+    ploter.visual_data(to_buy['gain'])
+
     threshold = 0.75
     count_thre = np.sum(ypref_val[:, 2] > threshold)
     acc_thre = np.sum(np.argmax(Y[ypref_val[:, 2] > threshold], axis=1) == 2) / np.sum(ypref_val[:, 2] > threshold)
