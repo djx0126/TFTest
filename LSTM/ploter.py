@@ -23,12 +23,14 @@ def plot_save(H, log_dir):
     plt.savefig(log_dir)
 
 
-def visual_data(df):
+def visual_data(df, df0):
     plt.figure()
     """
     画直方图，直观了解数据
     """
     df.hist(bins=50,
-        rwidth=0.9, grid=False, figsize=(8, 8), alpha=0.6, color="grey")
+        rwidth=0.9, grid=False, figsize=(8, 8), alpha=0.6, color="blue")
+    df0.hist(bins=50,
+            rwidth=0.9, grid=False, figsize=(8, 8), alpha=0.6, color="grey")
     plt.show(block=False)
 

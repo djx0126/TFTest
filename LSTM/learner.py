@@ -103,13 +103,13 @@ train_steps_per_epoch = np.floor(len(X_train)/batch_size).astype(np.int32)
 def get_compiled_model():
     inputs = keras.Input(shape=(320,), batch_shape=(None, 320))
     x = inputs
-    # x = keras.layers.Reshape((64, 5))(x)
+    x = keras.layers.Reshape((64, 5))(x)
     #
-    # x = keras.layers.Conv1D(filters=1, kernel_size=1, padding='valid', data_format='channels_last')(x)
-    # # x = keras.layers.LSTM(8, dropout=0.2)(x)
+    x1 = keras.layers.Conv1D(filters=1, kernel_size=1, padding='valid', data_format='channels_last')(x)
+    x1 = keras.layers.LSTM(8, dropout=0.2)(x1)
     # # x = keras.layers.Flatten()(x)
     #
-    # x1 = keras.layers.Conv1D(filters=8, kernel_size=5, padding='valid', data_format='channels_last')(x)
+    # x1 = keras.layers.Conv1D(filters=1, kernel_size=1, padding='valid', data_format='channels_last')(x)
     # x1 = keras.layers.LSTM(8, dropout=0.2)(x1)
     # x1 = keras.layers.MaxPooling1D(2)(x1)
     # x1 = keras.layers.Conv1D(filters=16, kernel_size=5, padding='valid', data_format='channels_last')(x1)
@@ -129,7 +129,7 @@ def get_compiled_model():
     # x3 = keras.layers.Flatten()(x3)
 
     # x = keras.layers.concatenate([x1,x2])
-    # x = x1
+    x = x1
 
     # x = keras.layers.Dense(8, activation='relu')(x)
     # x = keras.layers.Dropout(0.34)(x)
@@ -173,6 +173,7 @@ model.save(os.path.join(log_dir, 'model'))
 
 
 def evaluate(X, Y, model, data_frame):
+    print(data_frame['gain'].describe())
     ypref_val = model.predict(x=X, workers=16)
     # print(ypref_val)
     ypre_val = np.argmax(ypref_val, axis=1)
@@ -182,7 +183,7 @@ def evaluate(X, Y, model, data_frame):
     to_buy = data_frame[ypre_val == 2]
     print('total=', len(Y), 'gain=', np.sum(to_buy['gain']), 'count=', sum_pre2, sum_Y_2, ' acc=', sum_Y_2/sum_pre2)
     print(to_buy['gain'].describe())
-    ploter.visual_data(to_buy['gain'])
+    ploter.visual_data(to_buy['gain'], data_frame['gain'])
 
     threshold = 0.75
     count_thre = np.sum(ypref_val[:, 2] > threshold)
